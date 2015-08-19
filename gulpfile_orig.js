@@ -2,60 +2,45 @@
 var gulp = require('gulp'),
 	autoprefixer = require('gulp-autoprefixer'),
 	browserSync = require('browser-sync'),
-	browserify = require('browserify'),
 	del = require('del'),
 	reload = browserSync.reload,
 	uglify = require('gulp-uglify'),
 	concat = require('gulp-concat'),
 	plumber = require('gulp-plumber'),
 	rename = require('gulp-rename'),
-	source = require('vinyl-source-stream'),
 	sass = require('gulp-sass');
 
 ////////////////////////////////////////////////////////////////////////////
 //scripts tasks
-////////////////////////////////////////////////////////////////////////////
-
-gulp.task('browserify', function () {
-	return browserify('./app/js/main.js')
-		.bundle()
-	//Pass desired output filename to vinyl-source-stream
-	.pipe(source('bundle.js'))
-	// .pipe(uglify())
-	// .pipe(rename('bundle.min.js'))
-	// .pipe(plumber())
-	.pipe(gulp.dest('./dist/js/'))
+////////////////////////////////////////////////////////////////////////////	
+gulp.task('scripts', function () {
+	return gulp.src(['app/js/**/*.js'])
+		.pipe(plumber())
+		.pipe(concat('all.min.js'))
+		.pipe(uglify())
+		.pipe(gulp.dest('app/dist'))
 		.pipe(reload({
 			stream: true
 		}));
 });
 
-gulp.task('scripts', ['browserify']);
-
-// gulp.task('scripts', function () {
-// 	return gulp.src(['app/js/**/*.js'])
-// 		.pipe(plumber())
-// 		.pipe(concat('all.min.js'))
-// 		.pipe(uglify())
-// 		.pipe(gulp.dest('app/dist'))
-// 		.pipe(reload({
-// 			stream: true
-// 		}));
-// });
-
 ////////////////////////////////////////////////////////////////////////////
 //css tasks
 ////////////////////////////////////////////////////////////////////////////
 gulp.task('css:sass', function () {
-	gulp.src('app/scss/**/*.scss')
-		.pipe(sass.sync().on('error', sass.logError))
-		.pipe(sass({
-			outputStyle: 'compressed'
-		}))
+  gulp.src('app/scss/**/*.scss')
+    .pipe(sass.sync().on('error', sass.logError))
+	.pipe(sass({outputStyle: 'compressed'}))
 	// .pipe(sass({outputStyle: 'expanded'})) 
-	.pipe(rename('rss_widget.css'))
-	// .pipe(autoprefixer('last 2 versions'))
-		.pipe(gulp.dest('dist/css'))
+    .pipe(gulp.dest('app/css'));
+});
+
+gulp.task('css:compass', function () {
+	gulp.src('app/scss/style.scss')
+		.pipe(plumber())
+	// .pipe(compass({}))
+	.pipe(autoprefixer('last 2 versions'))
+		.pipe(gulp.dest('app/css'))
 		.pipe(reload({
 			stream: true
 		}));
@@ -66,11 +51,7 @@ gulp.task('css', ['css:sass']);
 ////////////////////////////////////////////////////////////////////////////
 //html tasks
 ////////////////////////////////////////////////////////////////////////////
-gulp.task('html:copy_index_to_dist', function () {
-	return gulp.src(['app/html/index.html'])
-		.pipe(gulp.dest('./dist/'));
-});
-gulp.task('html', ['html:copy_index_to_dist'], function () {
+gulp.task('html', function () {
 	gulp.src(['app/**/*.html'])
 		.pipe(reload({
 			stream: true
@@ -83,7 +64,7 @@ gulp.task('html', ['html:copy_index_to_dist'], function () {
 gulp.task('browser-sync', function () {
 	browserSync({
 		server: {
-			baseDir: "./dist/"
+			baseDir: "./app/"
 		}
 	});
 });
@@ -118,16 +99,16 @@ gulp.task('build:cleanfolder', function (cb) {
 //create new build folder
 gulp.task('build:copy', ['build:cleanfolder'], function (cb) {
 	//copy app folder into build folder
-	return gulp.src('dist/**/*')
+	return gulp.src('app/**/*')
 		.pipe(gulp.dest('build/'));
 });
 
 //delete unwanted files and folders
 gulp.task('build:remove', ['build:copy'], function (cb) {
-	//del(['build/scss/', 'build/js/!(*.min.js)'], cb);
+	del(['build/scss/', 'build/js/!(*.min.js)'], cb);
 });
 
-gulp.task('build', ['build:copy', 'build:remove', 'build:serve']);
+gulp.task('build', ['build:copy', 'build:remove']);
 
 
 ////////////////////////////////////////////////////////////////////////////
