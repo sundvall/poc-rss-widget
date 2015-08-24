@@ -1,0 +1,125 @@
+$font-stack: Helvetica, sans-serif;
+$primary-color: #333;
+$secondary-color: #6B6452;
+$devborder:'1px dashed black';
+
+.rss_widget {
+	border:1px dashed red;
+	width:100%;
+	position:relative;
+}
+.rss_wrap {
+	border:2px dashed orange;
+}
+.rss_viewport {
+	border:1px dashed yellow;
+	overflow:hidden;
+}
+.rss_items {
+	border:1px dashed green;
+	position:relative;
+	left:0;
+	top:0;
+}
+.rss_item {
+	border:1px dashed blue;
+	overflow:hidden;
+}
+
+.rss_nextbtn,.rss_prevbtn {
+	height:32px;
+	width:32px;
+	position:absolute;
+	display:block;
+	border-radius:16px;
+	opacity:50%;
+}
+.rss_nextbtn {
+	right:0px;
+	transform: rotate(270deg);
+}
+.rss_prevbtn {
+	left:0px;
+		transform: rotate(90deg);
+}
+
+/*.rss_wrap {
+	width:100%;
+	position:relative;
+	left:0;
+	top:0;
+	border:1px dashed black;
+	.rss_viewport {
+		width:90%;
+		overflow:hidden;
+		margin:0 auto 0 auto;
+		position:relative;
+		left:0;
+		top:0;
+	}
+	ol {
+		display:block;
+		width:100%;
+		margin:0;
+		padding:0;
+		position:relative;
+		left:0;
+		top:0;
+
+	}
+	li {
+		display:block;
+		width:100%;
+		margin:0;
+		padding:0;
+
+	}
+	button {
+		position:absolute;
+	}
+	.rss_next {
+		left:0;
+		top:40px;
+	}
+	.rss_prev {
+		right:0;
+		top:40px;
+	}
+}
+
+.rss_item {
+	background:grey;
+
+	border-radius:10px;
+	display:block;
+	position:relative;
+	left:0;
+	top:0;
+	h2 {
+		font-size:1em;
+		line-height:1.2em;
+	}
+	img {
+		border:2px dashed grey;
+		width:100%;
+	}
+	ol {
+		display:block;
+		overflow:hidden;
+		list-style:none;
+		position:absolute;
+		width:100%;
+	}
+	li {
+		list-style:none;
+		width:100%;
+	}
+	p {
+		display:block;
+		overflow:hidden;
+		font-family:arial;
+		color:yellow;
+		line-height:1em;
+	}
+}*/
+

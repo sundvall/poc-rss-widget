@@ -45,91 +45,8 @@ module.exports = {
 
 
 /**
- * Dispatcher is used to broadcast payloads to registered callbacks. This is
- * different from generic pub-sub systems in two ways:
- *
- *   1) Callbacks are not subscribed to particular events. Every payload is
- *      dispatched to every registered callback.
- *   2) Callbacks can be deferred in whole or part until other callbacks have
- *      been executed.
- *
- * For example, consider this hypothetical flight destination form, which
- * selects a default city when a country is selected:
- *
- *   var flightDispatcher = new Dispatcher();
- *
- *   // Keeps track of which country is selected
- *   var CountryStore = {country: null};
- *
- *   // Keeps track of which city is selected
- *   var CityStore = {city: null};
- *
- *   // Keeps track of the base flight price of the selected city
- *   var FlightPriceStore = {price: null}
- *
- * When a user changes the selected city, we dispatch the payload:
- *
- *   flightDispatcher.dispatch({
- *     actionType: 'city-update',
- *     selectedCity: 'paris'
- *   });
- *
- * This payload is digested by `CityStore`:
- *
- *   flightDispatcher.register(function(payload) {
- *     if (payload.actionType === 'city-update') {
- *       CityStore.city = payload.selectedCity;
- *     }
- *   });
- *
- * When the user selects a country, we dispatch the payload:
- *
- *   flightDispatcher.dispatch({
- *     actionType: 'country-update',
- *     selectedCountry: 'australia'
- *   });
- *
- * This payload is digested by both stores:
- *
- *   CountryStore.dispatchToken = flightDispatcher.register(function(payload) {
- *     if (payload.actionType === 'country-update') {
- *       CountryStore.country = payload.selectedCountry;
- *     }
- *   });
- *
- * When the callback to update `CountryStore` is registered, we save a reference
- * to the returned token. Using this token with `waitFor()`, we can guarantee
- * that `CountryStore` is updated before the callback that updates `CityStore`
- * needs to query its data.
- *
- *   CityStore.dispatchToken = flightDispatcher.register(function(payload) {
- *     if (payload.actionType === 'country-update') {
- *       // `CountryStore.country` may not be updated.
- *       flightDispatcher.waitFor([CountryStore.dispatchToken]);
- *       // `CountryStore.country` is now guaranteed to be updated.
- *
- *       // Select the default city for the new country
- *       CityStore.city = getDefaultCityForCountry(CountryStore.country);
- *     }
- *   });
- *
- * The usage of `waitFor()` can be chained, for example:
- *
- *   FlightPriceStore.dispatchToken =
- *     flightDispatcher.register(function(payload) {
- *       switch (payload.actionType) {
- *         case 'country-update':
- *         case 'city-update':
- *           flightDispatcher.waitFor([CityStore.dispatchToken]);
- *           FlightPriceStore.price =
- *             getFlightPriceStore(CountryStore.country, CityStore.city);
- *           break;
- *     }
- *   });
- *
- * The `country-update` payload will be guaranteed to invoke the stores'
- * registered callbacks in order: `CountryStore`, `CityStore`, then
- * `FlightPriceStore`.
+ This module is a transcription to ES5 of the facebook version for ES6.
+https://github.com/facebook/flux/blob/master/src/Dispatcher.js
  */
 
 module.exports = (function () {
@@ -218,7 +135,7 @@ module.exports = (function () {
 				startDispatching(TPayload);
 				try {
 					Object.keys(callbacks).forEach(function (disp_token) {
-						console.log('dispatcher: token:' + disp_token);
+						// console.log('dispatcher: token:' + disp_token);
 						// console.dir(callbacks[disp_token]);
 						// callbacks[disp_token]();
 						
@@ -257,30 +174,6 @@ module.exports = (function () {
 					}
 				}
 			}
-			/*waitFor(ids: Array < DispatchToken > ): void {
-				invariant(
-					this.isDispatching,
-					'Dispatcher.waitFor(...): Must be invoked while dispatching.'
-				);
-				for (var ii = 0; ii < ids.length; ii++) {
-					var id = ids[ii];
-					if (this.isPending[id]) {
-						invariant(
-							this.isHandled[id],
-							'Dispatcher.waitFor(...): Circular dependency detected while ' +
-							'waiting for `%s`.',
-							id
-						);
-						continue;
-					}
-					invariant(
-						this.callbacks[id],
-						'Dispatcher.waitFor(...): `%s` does not map to a registered callback.',
-						id
-					);
-					this.invokeCallback(id);
-				}
-			}*/
 		},
 		print : function () {
 			console.log('dispatcher:print:');
@@ -299,18 +192,11 @@ module.exports = (function () {
  */
 var actions = require('./actions'),
 	constants = require('./constants'),
-	dispatcher = require('./dispatcher'),
-	events = require('events'),
-	eventEmitter = new events.EventEmitter();
-// slider_store = require('.slider_store');
+	dispatcher = require('./dispatcher');
 
-// NS = {};
-// NS.OBJECTMAKER = 
 module.exports = function (params) {
 	"use strict";
-	// var maker = (function () {
-	var itemsToDisplay = params.items || 3,
-		urlToRss = params.url,
+	var	urlToRss = params.url,
 		dispatchToken,
 		viewcontrol = params.viewcontrol,
 		id = params.id,
@@ -318,12 +204,12 @@ module.exports = function (params) {
 			'type': 'json formatted rss flow'
 		},
 		emitChange = function () {
-			console.log('rsslist_store:emitChange');
+			console.log('rsslist_store:emitChange:state:');
+			// console.dir(state);
 			viewcontrol[id].update({
-				'example': 'rsslist_store',
+				'from': 'rsslist_store',
 				'id': id,
-				'state': state,
-				'items': state.query.results.rss.channel.item
+				'state': state
 			});
 		},
 		ajaxAndRespondHandler = function (requestUrl, handler) {
@@ -337,7 +223,7 @@ module.exports = function (params) {
 			return yahooApi + encodeURIComponent('select * from ' + xmlOrJson + ' where url=\"' + urlToRss + '\"') + '&format=json';
 		},
 		responseHandler = function () {
-			console.log('emit change');
+			// console.log('emit change');
 			state = JSON.parse(this.response);
 			// console.log(JSON.parse(this.response));
 			emitChange();
@@ -348,19 +234,10 @@ module.exports = function (params) {
 		registerFluxActionHandlers = function () {
 			dispatchToken = dispatcher.register(function (action) {
 				/*if an id is provided only update the specific store and view*/
-
 				if (action.type === constants.UPDATE) {
-					// console.log('rsslist_store:update');
-					// 					console.dir(action);
-					// 					if (action.hasOwnProperty('id')) {
-					// 						if (action.id === id) {
-					// 							getListAndRender();
-					// 						} else if (action.id === 'all') {
 					if (action.id === id || action.id === 'all') {
 						getListAndRender();
 					}
-					// } 
-					// }
 				}
 			});
 		};
@@ -368,10 +245,6 @@ module.exports = function (params) {
 	return {
 		init: function () {
 			registerFluxActionHandlers();
-			// console.log('rss_list_store:viewcontrol:');
-			// 			console.dir(viewcontrol);
-			// 			console.log('rss_list_store:viewcontrol ' + id);
-			// 			console.dir(viewcontrol[id]);
 		},
 		update: function () {
 			getListAndRender();
@@ -380,12 +253,9 @@ module.exports = function (params) {
 			return state;
 		}
 	};
-
-	// }());
-	// return maker;
 };
 
-},{"./actions":1,"./constants":2,"./dispatcher":3,"events":7}],5:[function(require,module,exports){
+},{"./actions":1,"./constants":2,"./dispatcher":3}],5:[function(require,module,exports){
 /*jslint browser: true, devel:true */
 /*global module, require*/
 /*
@@ -393,84 +263,539 @@ module.exports = function (params) {
  */
 var actions = require('./actions'),
 	constants = require('./constants'),
-	dispatcher = require('./dispatcher');
-// events = require('events').EventEmitter;
-// events = require('events'),
-// eventEmitter = new events.EventEmitter();
-// slider_store = require('.slider_store');
+	dispatcher = require('./dispatcher'),
+	height_scale = require('./utils/height_scale'),
+	widget_resize = require('./utils/widget_resize'),
+	item_resize = require('./utils/item_resize'),
+	item_factory = require('./utils/item_factory'),
+	slide_element = require('./utils/slide_element'),
+	widgetwrap_factory = require('./utils/widgetwrap_factory');
 
-// NS = {};
 module.exports = function (params) {
 	"use strict";
-	// var maker = (function () {
 	var itemsToDisplay = params.items || 3,
 		containerElm = params.container,
+		widgetResize,
+		heightScale,
+		itemFactory,
+		itemResize,
+		elements = {},
 		id = params.id,
-		rssContainerElm,
-		buttonElm,
-		urlToRss = params.url,
-		state = {
-			'type': 'json formatted rss flow'
+		slideElement,
+		widgetWrapFactory,
+		createWrapper = function () {
+			widgetWrapFactory = widgetwrap_factory({
+				container: containerElm,
+				id: id
+			});
+			widgetWrapFactory.init();
+			elements = widgetWrapFactory.getElements();
+			elements.widget = containerElm;
+		},
+		controlWrapperHeight = function () {
+			heightScale = height_scale({
+				ref_elm: elements.widget,
+				id: id,
+				format: '16_9'
+			});
+			heightScale.init();
+			heightScale.getHeight();
+			widgetResize = widget_resize({
+				elements: elements,
+				items_to_display: itemsToDisplay
+			});
+			widgetResize.init();
+			widgetResize.update(heightScale.getHeight());
+		},
+		replaceList = function () {
+			var itemlist,
+				steps;
+			try {
+				itemlist = (data.state.query.results.rss.channel.item || data.state.query.results.feed.entry);
+			} catch (e) {
+				console.log('slider_viewcontrol:124: rss format is not supported.' + e);
+			}
+			itemFactory = item_factory({
+				container: elements.items,
+				id: id,
+				items_to_display: itemsToDisplay,
+				item: itemlist || [{
+					category: 'category',
+					description: 'description',
+					guid: {
+						content: 'permalink',
+						isPermalink: 'true'
+					},
+					link: 'www...',
+					pubDate: 'date',
+					title: 'title'
+				}]
+			});
+			itemFactory.init();
+		},
+		controlListHeight = function () {
+			widgetResize.update(heightScale.getHeight());
+			itemResize = item_resize({
+				elements: itemFactory.getElements()
+			});
+			itemResize.init();
+			itemResize.update(heightScale.getHeight());	
+		},
+		addListeners = function () {
+			elements.nextbtn.addEventListener('click', function () {
+				console.log(id);
+				slideElement.next();
+			});
+			elements.prevbtn.addEventListener('click', function () {
+				console.log(id);
+				slideElement.prev();
+			});
 		};
 
 	return {
 		init: function () {
-			console.log('slider_view:init');
-			var html = '';
-			html += '<h1>rss init:' + itemsToDisplay + '</h1>';
-			html += '<ol class="rss_wrap">';
-			html += '</ol>';
-			html += '<button>update:id:' + id + '</button>';
-			html += '</div>';
-			containerElm.innerHTML = html;
-			rssContainerElm = containerElm.querySelector('ol');
-			containerElm.style.border = '2px solid black';
-			buttonElm = containerElm.querySelector('button');
-			buttonElm.addEventListener('click', function () {
-				console.log(id);
-				actions.update(id);
-			});
-
+			/*Create the html wrapper*/
+			createWrapper();
+			/*Control the height of the wrapper*/
+			controlWrapperHeight();
+			/*add functionality to buttons and links*/
+			addListeners();
 		},
 		update: function (data) {
-			/*get state from store*/
-			console.log('slider_view:update:' + data.id);
-			// console.dir(data);
-			var i = 0,
-				html = '';
-			for (i = 0; i < itemsToDisplay; i += 1) {
-				html += data.items[i].description;
+			/*Replace and update the list inside the wrapper*/
+			var itemlist,
+				steps;
+			try {
+				itemlist = (data.state.query.results.rss.channel.item || data.state.query.results.feed.entry);
+			} catch (e) {
+				console.log('slider_viewcontrol:124: rss format is not supported.' + e);
 			}
-			rssContainerElm.innerHTML = html;
-
-			// getListAndRender();
-		},
-		getState: function () {
-			return state;
+			itemFactory = item_factory({
+				container: elements.items,
+				id: id,
+				items_to_display: itemsToDisplay,
+				item: itemlist || [{
+					category: 'category',
+					description: 'description',
+					guid: {
+						content: 'permalink',
+						isPermalink: 'true'
+					},
+					link: 'www...',
+					pubDate: 'date',
+					title: 'title'
+				}]
+			});
+			itemFactory.init();
+			/*Control the size of the list*/
+			controlListHeight();
+			/*
+			widgetResize.update(heightScale.getHeight());
+			itemResize = item_resize({
+				elements: itemFactory.getElements()
+			});
+			itemResize.init();
+			itemResize.update(heightScale.getHeight());
+			*/
+			
+			/*Attach slider functionality*/
+			steps = itemlist.length / itemsToDisplay;
+			slideElement = slide_element({
+				element: elements.items,
+				stepsize: (itemsToDisplay * heightScale.getHeight()),
+				steps: steps
+			});
+			slideElement.init();
 		}
 	};
-
-	// }());
-	// return maker;
 };
 
-},{"./actions":1,"./constants":2,"./dispatcher":3}],6:[function(require,module,exports){
+},{"./actions":1,"./constants":2,"./dispatcher":3,"./utils/height_scale":6,"./utils/item_factory":7,"./utils/item_resize":8,"./utils/slide_element":9,"./utils/widget_resize":10,"./utils/widgetwrap_factory":11}],6:[function(require,module,exports){
+/*jslint browser: true, devel:true */
+/*global module, require*/
+/*
+ 	
+ */
+module.exports = function (params) {
+	"use strict";
+
+	var refElm = params.ref_elm,
+		aspects = {
+			'4_3': {
+				h: 3,
+				w: 4
+			},
+			'1_1': {
+				h: 1,
+				w: 1
+			},
+			'16_9': {
+				h: 9,
+				w: 16
+			}
+		},
+		format = (params.format || '4_3'),
+		// itemsToDisplay = params.items_to_display,
+		MATHROUND = Math.round,
+		ref_h = (aspects[format].h || 3),
+		ref_w = (aspects[format].w || 4),
+		refHeight,
+		// id = params.id,
+		boxPosition = function (elm) {
+			var b = elm.getBoundingClientRect();
+			return {
+				'h': b.height,
+				'w': b.width
+			};
+		},
+		heightFromAspectRatio = function (p) {
+			return MATHROUND((p.refH / p.refW) * p.w);
+		},
+		setRefHeight = function () {
+			/*Get width of rss_widget and apply selected aspect to get a scaled reference height for the content*/
+			var width = boxPosition(refElm).w;
+			refHeight = heightFromAspectRatio({
+				refH: ref_h,
+				refW: ref_w,
+				w: width
+			});
+		};
+
+	return {
+		init: function () {
+			// console.log('height_control:init');
+			// console.dir(params);
+			setRefHeight();
+		},
+		getHeight: function () {
+			return refHeight;
+		}
+
+	};
+};
+
+},{}],7:[function(require,module,exports){
+/*jslint browser: true, devel:true */
+/*global module, require*/
+/*
+ 
+ */
+module.exports = function (params) {
+	"use strict";
+
+	var containerElm = params.container,
+		item = (params.items || params.item),
+		itemsToDisplay = params.items_to_display || 1,
+		elements = {
+			'item': []
+		},
+		li = function (item) {
+			var wrap = document.createElement('li'),
+				category = document.createElement('h1'),
+				title = document.createElement('h2'),
+				description = document.createElement('article'),
+				pubdate = document.createElement('p');
+			elements.item.push({
+				'wrap': wrap,
+				'category': category,
+				'title': title,
+				'description': description,
+				'pubdate': pubdate
+			});
+			if (item.category) {
+				wrap.appendChild(category);
+				category.innerText = item.category;
+				category.className = 'rss_category';
+			}
+			if (item.title) {
+				wrap.appendChild(title);
+				title.innerText = item.title;
+				title.className = 'rss_title';
+			}
+			if (item.pubDate) {
+				wrap.appendChild(pubdate);
+				pubdate.innerText = item.pubDate;
+				pubdate.className = 'rss_pubdate';
+			}
+			if (item.link) {
+				wrap.setAttribute('rel', item.link);
+			}
+			try {
+				wrap.appendChild(description);
+				description.innerHTML = item.description;
+				description.className = 'rss_description';
+			} catch (e) {
+				console.log('item_factory:54: rss format uncomplete:' + e);
+			}
+			wrap.className = 'rss_item';
+			return wrap;
+		},
+		appendList = function (elm) {
+			/*go through the rss array of items and create html for each.
+			Clone end elements to the opposite ends to create endless slider.
+			*/
+			// console.dir(item);
+			var L = item.length,
+				firstItem = item[0],
+				lastItem = item[L - 1],
+				i,
+				j;
+			// elm.appendChild(li(lastItem));
+			for (i = 0; i < itemsToDisplay; i += 1) {
+				console.log('appendToBegin:' + i);
+				elm.appendChild(li(item[L - 1 - i]));
+			}
+			item.forEach(function (item, index) {
+				elm.appendChild(li(item));
+			});
+			for (j = 0; j < itemsToDisplay; j += 1) {
+				console.log('appendToEnd:' + j);
+				elm.appendChild(li(item[j]));
+			}
+			// elm.appendChild(li(firstItem));
+			return elm;
+		},
+		clearContainer = function () {
+			if (containerElm.childNodes.length > 0) {
+				while (containerElm.firstChild) {
+					containerElm.removeChild(containerElm.firstChild);
+				}
+			}
+		},
+		createWrapperFragment = function () {
+			var docf = document.createDocumentFragment();
+			appendList(docf);
+			return docf;
+		};
+
+	return {
+		init: function () {
+			console.log('item_factory:init');
+			clearContainer();
+			containerElm.appendChild(createWrapperFragment());
+		},
+		getElements: function () {
+			return elements;
+		}
+
+	};
+};
+
+},{}],8:[function(require,module,exports){
+/*jslint browser: true, devel:true */
+/*global module, require*/
+/*
+ 	
+ */
+module.exports = function (params) {
+	"use strict";
+
+	var elements = params.elements,
+		refH,
+		setHeight = function (item) {
+			item.style.height = refH + 'px';
+		};
+
+	return {
+		init: function () {
+			// console.log('item_resize:init');
+			// console.dir(elements);
+		},
+		update: function (h) {
+			console.log('item_resize:update:' + h);
+			refH = h;
+			console.dir(elements);
+			try {
+				elements.item.forEach(function (elm) {
+					// console.dir(elm);
+					setHeight(elm.wrap);
+				});
+
+			} catch (e) {
+				console.log('item_resize:update:28:' + e);
+			}
+
+		}
+
+	};
+};
+
+},{}],9:[function(require,module,exports){
+/*jslint browser: true, devel:true */
+/*global module, require*/
+/*
+ 	
+ */
+module.exports = function (params) {
+	"use strict";
+
+	var element = params.element,
+		steps = params.steps,
+		stepsize = params.stepsize,
+		scrollMax = (steps - 1) * stepsize,
+		scrollMin = stepsize,
+		currentScroll = 0,
+		scrollSlider = function () {
+			console.log('scrollSlider:' + currentScroll + ' max:' + scrollMax + ' scrollMin:' + scrollMin);
+			if (Math.abs(currentScroll) > scrollMax) {
+				setTimeout(scrollToTop(), 500);
+			} else if (Math.abs(currentScroll) < scrollMin) {
+				setTimeout(scrollToBottom(), 500);
+			}
+			element.style.top = currentScroll + 'px';
+		},
+		scrollToBottom = function () {
+			currentScroll = -scrollMax; //*itemsToDisplay
+			scrollSlider();
+		},
+		scrollToTop = function () {
+			currentScroll = -stepsize; //*itemsToDisplay
+			scrollSlider();
+		},
+		skipToNext = function () {
+			currentScroll -= stepsize;
+			scrollSlider();
+		},
+		skipToPrevious = function () {
+			currentScroll += stepsize;
+			scrollSlider();
+		};
+
+	return {
+		init: function () {
+			console.log('slide_element:init');
+			console.log(params);
+			scrollToTop();
+		},
+		next: function () {
+			console.log('slide_element:next');
+			skipToNext();
+		},
+		prev: function () {
+			console.log('slide_element:prev');
+			skipToPrevious();
+		}
+
+	};
+};
+
+},{}],10:[function(require,module,exports){
+/*jslint browser: true, devel:true */
+/*global module, require*/
+/*
+ 	
+ */
+module.exports = function (params) {
+	"use strict";
+
+	var elements = params.elements,
+		itemsToDisplay = params.items_to_display,
+		refH,
+		viewport,
+		setHeight = function (item, h) {
+			item.style.height = h + 'px';
+		},
+		positionButtons = function () {
+			elements.nextbtn.style.top = (0.5 * itemsToDisplay * refH) + 'px';
+			elements.prevbtn.style.top = (0.5 * itemsToDisplay * refH) + 'px';
+		},
+		setViewportHeight = function () {
+			console.log('widget_resize:setViewportHeight');
+			setHeight(viewport, (refH * itemsToDisplay));
+		};
+
+	return {
+		init: function () {
+			console.log('widget_resize:init');
+			console.log(params);
+			// console.dir(elements);
+			viewport = elements.viewport;
+			// setRefHeight();
+		},
+		update: function (h) {
+			refH = h;
+			console.log('widget_resize:update:' + refH);
+			console.dir(elements);
+			// elements.viewport.style.height = '240px';
+			setViewportHeight();
+			positionButtons();
+		}
+
+	};
+};
+
+},{}],11:[function(require,module,exports){
+/*jslint browser: true, devel:true */
+/*global module, require*/
+/*
+ return <document fragment>
+ */
+module.exports = function (params) {
+	"use strict";
+	var containerElm = params.container,
+		elements = {
+			'wrap': '',
+			'viewport': '',
+			'items': '',
+			'nextbtn': '',
+			'prevbtn': ''
+		},
+		id = params.id,
+		createWrapperFragment = function () {
+			/* 
+			<div class="rss_wrap">
+				<div class="fkn_rss_viewport rss_viewport">
+					<ol class="fkn_rss_items rss_wrap">
+					</ol>
+				</div>
+				<button class="fkn_rss_next rss_next">next:id:' + id + '</button>
+				<button class="fkn_rss_prev rss_prev">prev:id:' + id + '</button>
+			</div>
+			*/
+			var docf = document.createDocumentFragment(),
+				elms = elements;
+			elms.wrap = document.createElement('div');
+			elms.wrap.className = 'rss_wrap';
+			docf.appendChild(elms.wrap);
+			elms.viewport = document.createElement('div');
+			elms.viewport.className = 'rss_viewport';
+			elms.items = document.createElement('ul');
+			elms.items.className = 'rss_items';
+			elms.nextbtn = document.createElement('button');
+			elms.nextbtn.className = 'rss_nextbtn';
+			elms.nextbtn.innerText = 'V';
+			elms.prevbtn = document.createElement('button');
+			elms.prevbtn.className = 'rss_prevbtn';
+			elms.prevbtn.innerText = 'V';
+			elms.wrap.appendChild(elms.viewport);
+			elms.viewport.appendChild(elms.items);
+			elms.wrap.appendChild(elms.nextbtn);
+			elms.wrap.appendChild(elms.prevbtn);
+			return docf;
+		};
+
+	return {
+		init: function () {
+			containerElm.appendChild(createWrapperFragment());
+		},
+		getElements: function () {
+			return elements;
+		}
+	};
+};
+
+},{}],12:[function(require,module,exports){
 /*jslint browser: true, devel:true */
 /*global require*/
 var actions = require('./lib/actions'),
 	constants = require('./lib/constants'),
 	dispatcher = require('./lib/dispatcher'),
 	rsslist_store = require('./lib/rsslist_store'),
-	slider_view = require('./lib/slider_view');
-// eventEmitter = require('node-event-emitter').EventEmitter;
-// events = require('events').EventEmitter;
-// eventEmitter = new events.EventEmitter();
-// slider_store = require('./lib/slider_store');
+	slider_viewcontrol = require('./lib/slider_viewcontrol');
 
-
-/*The function below counts the number of elements with class 'rss_display' that exists and gets configuration given in the 'rel' and 'items' attributes.
+/*The function below counts the number of elements with class 'rss_widget' that exists and gets configuration given in the 'rel' and 'items' attributes.
  *example:
- *<div class='rss_display' items='4' rel='http://www.aftonbladet.se/rss.xml'></div>
+ *<div class='rss_widget' items='4' rel='http://www.aftonbladet.se/rss.xml'></div>
  *This configuration creates a container with 4 items from the given url.
  *This script is best put at the end of the page, or when the dom-content is surely loaded.
  */
@@ -482,9 +807,9 @@ var actions = require('./lib/actions'),
 		rss_stores = [],
 		viewControl = {},
 		countElementsAndInitRss = function () {
-			var allRssContainers = nodelistAsArray('.rss_display');
+			var allRssContainers = nodelistAsArray('.rss_widget');
 			allRssContainers.forEach(function (elm, index) {
-				var sliderView = slider_view({
+				var sliderViewcontrol = slider_viewcontrol({
 					'id': index,
 					'container': elm,
 					'items': elm.getAttribute('items')
@@ -495,336 +820,20 @@ var actions = require('./lib/actions'),
 						'viewcontrol': viewControl,
 						'url': elm.getAttribute('rel')
 					});
-				viewControl[index] = sliderView;
-				sliderView.init();
+				viewControl[index] = sliderViewcontrol;
+				sliderViewcontrol.init();
 				rss_stores.push(rssStore);
 				rssStore.init();
-				// console.log('main:sliderView');
-				// console.dir(sliderView);
 			});
-			// console.log('main:viewControl:');
-			// console.dir(viewControl);
-			// console.log(viewControl[1].update({
-			// 'id': 'testi d'
-			// }));
 		};
 	countElementsAndInitRss();
 
-	// var ringBell = function () {
-	// 		console.log('ring bell');
-	// 	};
-	// 	eventEmitter.on('doorOpen', ringBell);
-
-	setTimeout(function () {
-		// console.log('main:tiemout');
-
-		// eventEmitter.emit('doorOpen');
+	var update = function () {
+		console.log('main:tiemout');
 		actions.update('all');
-		// actions.next();
-	}, 1000);
+	};
+	setTimeout(update, 1000);
+	// setTimeout(update, 5000);
 }());
 
-},{"./lib/actions":1,"./lib/constants":2,"./lib/dispatcher":3,"./lib/rsslist_store":4,"./lib/slider_view":5}],7:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-function EventEmitter() {
-  this._events = this._events || {};
-  this._maxListeners = this._maxListeners || undefined;
-}
-module.exports = EventEmitter;
-
-// Backwards-compat with node 0.10.x
-EventEmitter.EventEmitter = EventEmitter;
-
-EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._maxListeners = undefined;
-
-// By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-EventEmitter.defaultMaxListeners = 10;
-
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!isNumber(n) || n < 0 || isNaN(n))
-    throw TypeError('n must be a positive number');
-  this._maxListeners = n;
-  return this;
-};
-
-EventEmitter.prototype.emit = function(type) {
-  var er, handler, len, args, i, listeners;
-
-  if (!this._events)
-    this._events = {};
-
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events.error ||
-        (isObject(this._events.error) && !this._events.error.length)) {
-      er = arguments[1];
-      if (er instanceof Error) {
-        throw er; // Unhandled 'error' event
-      }
-      throw TypeError('Uncaught, unspecified "error" event.');
-    }
-  }
-
-  handler = this._events[type];
-
-  if (isUndefined(handler))
-    return false;
-
-  if (isFunction(handler)) {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        len = arguments.length;
-        args = new Array(len - 1);
-        for (i = 1; i < len; i++)
-          args[i - 1] = arguments[i];
-        handler.apply(this, args);
-    }
-  } else if (isObject(handler)) {
-    len = arguments.length;
-    args = new Array(len - 1);
-    for (i = 1; i < len; i++)
-      args[i - 1] = arguments[i];
-
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++)
-      listeners[i].apply(this, args);
-  }
-
-  return true;
-};
-
-EventEmitter.prototype.addListener = function(type, listener) {
-  var m;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events)
-    this._events = {};
-
-  // To avoid recursion in the case that type === "newListener"! Before
-  // adding it to the listeners, first emit "newListener".
-  if (this._events.newListener)
-    this.emit('newListener', type,
-              isFunction(listener.listener) ?
-              listener.listener : listener);
-
-  if (!this._events[type])
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  else if (isObject(this._events[type]))
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  else
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-
-  // Check for listener leak
-  if (isObject(this._events[type]) && !this._events[type].warned) {
-    var m;
-    if (!isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
-    } else {
-      m = EventEmitter.defaultMaxListeners;
-    }
-
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-      console.error('(node) warning: possible EventEmitter memory ' +
-                    'leak detected. %d listeners added. ' +
-                    'Use emitter.setMaxListeners() to increase limit.',
-                    this._events[type].length);
-      if (typeof console.trace === 'function') {
-        // not supported in IE 10
-        console.trace();
-      }
-    }
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  var fired = false;
-
-  function g() {
-    this.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
-    }
-  }
-
-  g.listener = listener;
-  this.on(type, g);
-
-  return this;
-};
-
-// emits a 'removeListener' event iff the listener was removed
-EventEmitter.prototype.removeListener = function(type, listener) {
-  var list, position, length, i;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events || !this._events[type])
-    return this;
-
-  list = this._events[type];
-  length = list.length;
-  position = -1;
-
-  if (list === listener ||
-      (isFunction(list.listener) && list.listener === listener)) {
-    delete this._events[type];
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-
-  } else if (isObject(list)) {
-    for (i = length; i-- > 0;) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener)) {
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0)
-      return this;
-
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
-
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.removeAllListeners = function(type) {
-  var key, listeners;
-
-  if (!this._events)
-    return this;
-
-  // not listening for removeListener, no need to emit
-  if (!this._events.removeListener) {
-    if (arguments.length === 0)
-      this._events = {};
-    else if (this._events[type])
-      delete this._events[type];
-    return this;
-  }
-
-  // emit removeListener for all listeners on all events
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
-
-  listeners = this._events[type];
-
-  if (isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else {
-    // LIFO order
-    while (listeners.length)
-      this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
-
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  var ret;
-  if (!this._events || !this._events[type])
-    ret = [];
-  else if (isFunction(this._events[type]))
-    ret = [this._events[type]];
-  else
-    ret = this._events[type].slice();
-  return ret;
-};
-
-EventEmitter.listenerCount = function(emitter, type) {
-  var ret;
-  if (!emitter._events || !emitter._events[type])
-    ret = 0;
-  else if (isFunction(emitter._events[type]))
-    ret = 1;
-  else
-    ret = emitter._events[type].length;
-  return ret;
-};
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-
-},{}]},{},[6]);
+},{"./lib/actions":1,"./lib/constants":2,"./lib/dispatcher":3,"./lib/rsslist_store":4,"./lib/slider_viewcontrol":5}]},{},[12]);

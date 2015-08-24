@@ -50,11 +50,15 @@ gulp.task('css:sass', function () {
 	gulp.src('app/scss/**/*.scss')
 		.pipe(sass.sync().on('error', sass.logError))
 		.pipe(sass({
-			outputStyle: 'compressed'
+			// outputStyle: 'compressed'
+			outputStyle: 'expanded'
 		}))
-	// .pipe(sass({outputStyle: 'expanded'})) 
-	.pipe(rename('rss_widget.css'))
-	// .pipe(autoprefixer('last 2 versions'))
+		.pipe(autoprefixer({
+		browsers: ['last 2 versions'],
+		cascade: true,
+		remove: true
+	}))
+		.pipe(rename('rss_widget.css'))
 		.pipe(gulp.dest('dist/css'))
 		.pipe(reload({
 			stream: true

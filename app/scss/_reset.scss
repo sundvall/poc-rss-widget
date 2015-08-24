@@ -1,0 +1,34 @@
+/*reset*/
+.rss_widget,
+.rss_widget a, 
+.rss_widget article, 
+.rss_widget button, 
+.rss_widget div,
+.rss_widget canvas,
+.rss_widget h1,
+.rss_widget h2,
+.rss_widget h3,
+.rss_widget h4,
+.rss_widget h5,
+.rss_widget h6,
+.rss_widget img,
+.rss_widget li,
+.rss_widget nav,
+.rss_widget ol,
+.rss_widget p,
+.rss_widget span, 
+.rss_widget ul,
+.rss_widget video {
+	margin: 0;
+	padding: 0;
+/*	border: 0 none;*/
+	outline: 0;
+	font-size: 12px;
+	font-family: arial, sans-serif;
+	vertical-align: baseline !important;
+	box-sizing: border-box !important;
+	list-style-type: none !important;
+	text-decoration: none;
+	user-select: none;
+}
+/*reset end*/
