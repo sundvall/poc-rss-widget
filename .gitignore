@@ -30,6 +30,7 @@ Thumbs.db
 # Build Systems #
 #################
 node_modules/
+bower.json
 bower_components
 .sass-cache
 *.css.map

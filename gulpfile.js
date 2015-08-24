@@ -19,7 +19,6 @@ var gulp = require('gulp'),
 gulp.task('browserify', function () {
 	return browserify('./app/js/main.js')
 		.bundle()
-	//Pass desired output filename to vinyl-source-stream
 	.pipe(source('bundle.js'))
 	// .pipe(uglify())
 	// .pipe(rename('bundle.min.js'))
@@ -31,17 +30,6 @@ gulp.task('browserify', function () {
 });
 
 gulp.task('scripts', ['browserify']);
-
-// gulp.task('scripts', function () {
-// 	return gulp.src(['app/js/**/*.js'])
-// 		.pipe(plumber())
-// 		.pipe(concat('all.min.js'))
-// 		.pipe(uglify())
-// 		.pipe(gulp.dest('app/dist'))
-// 		.pipe(reload({
-// 			stream: true
-// 		}));
-// });
 
 ////////////////////////////////////////////////////////////////////////////
 //css tasks

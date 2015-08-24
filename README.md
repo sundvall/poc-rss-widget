@@ -1,4 +1,5 @@
 # poc-rss-widget
+
 ##Proof of concept, rss reader  
 Use the setup from the dist-folder to test.  
 
@@ -15,3 +16,12 @@ gulp
 
 ##build for prod
 gulp build
+
+##todo
+apply nice style
+
+apply links
+
+cleanup code
+
+update readme
