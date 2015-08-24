@@ -1,7 +1,7 @@
 {
   "name": "project",
   "version": "1.0.0",
-  "description": "",
+  "description": "rss reader",
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
@@ -21,6 +21,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Martin Sundvall",
   "license": "ISC"
 }
