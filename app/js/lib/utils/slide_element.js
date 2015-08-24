@@ -9,24 +9,42 @@ module.exports = function (params) {
 	var element = params.element,
 		steps = params.steps,
 		stepsize = params.stepsize,
-		scrollMax = (steps - 1) * stepsize,
+		scrollMax = (steps - 0) * stepsize,
 		scrollMin = stepsize,
 		currentScroll = 0,
 		scrollSlider = function () {
-			console.log('scrollSlider:' + currentScroll + ' max:' + scrollMax + ' scrollMin:' + scrollMin);
 			if (Math.abs(currentScroll) > scrollMax) {
-				setTimeout(scrollToTop(), 500);
+				element.style.top = currentScroll + 'px';
+				setTimeout(function () {
+					element.style.transitionDuration = '0ms';
+					scrollToTop();
+					setTimeout(function () {
+						element.style.transitionDuration = '250ms';
+					}, 251);
+				}, 251);
 			} else if (Math.abs(currentScroll) < scrollMin) {
-				setTimeout(scrollToBottom(), 500);
+				element.style.top = currentScroll + 'px';
+				setTimeout(function () {
+					element.style.transitionDuration = '0ms';
+					scrollToEnd();
+					setTimeout(function () {
+						element.style.transitionDuration = '250ms';
+					}, 251);
+				}, 251);
+			} else {
+				element.style.top = currentScroll + 'px';
 			}
-			element.style.top = currentScroll + 'px';
 		},
-		scrollToBottom = function () {
-			currentScroll = -scrollMax; //*itemsToDisplay
+		scrollToEnd = function () {
+			currentScroll = -scrollMax;
+			scrollSlider();
+		},
+		scrollToSecond = function () {
+			currentScroll = -2 * stepsize;
 			scrollSlider();
 		},
 		scrollToTop = function () {
-			currentScroll = -stepsize; //*itemsToDisplay
+			currentScroll = -stepsize;
 			scrollSlider();
 		},
 		skipToNext = function () {
@@ -40,16 +58,12 @@ module.exports = function (params) {
 
 	return {
 		init: function () {
-			console.log('slide_element:init');
-			console.log(params);
 			scrollToTop();
 		},
 		next: function () {
-			console.log('slide_element:next');
 			skipToNext();
 		},
 		prev: function () {
-			console.log('slide_element:prev');
 			skipToPrevious();
 		}
 

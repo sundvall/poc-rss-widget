@@ -1,24 +1,20 @@
 /*jslint browser: true, devel:true */
 /*global module, require*/
-/*
- *Input: params{items:N,url:'...url.to.rss..}
- */
+
 var actions = require('./actions'),
 	constants = require('./constants'),
 	dispatcher = require('./dispatcher');
 
 module.exports = function (params) {
 	"use strict";
-	var	urlToRss = params.url,
-		dispatchToken,
+	var	id = params.id,
+		urlToRss = params.url,
 		viewcontrol = params.viewcontrol,
-		id = params.id,
+		dispatchToken,
 		state = {
 			'type': 'json formatted rss flow'
 		},
 		emitChange = function () {
-			console.log('rsslist_store:emitChange:state:');
-			// console.dir(state);
 			viewcontrol[id].update({
 				'from': 'rsslist_store',
 				'id': id,
@@ -36,9 +32,7 @@ module.exports = function (params) {
 			return yahooApi + encodeURIComponent('select * from ' + xmlOrJson + ' where url=\"' + urlToRss + '\"') + '&format=json';
 		},
 		responseHandler = function () {
-			// console.log('emit change');
 			state = JSON.parse(this.response);
-			// console.log(JSON.parse(this.response));
 			emitChange();
 		},
 		getListAndRender = function () {

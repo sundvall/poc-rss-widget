@@ -57,25 +57,20 @@ module.exports = function (params) {
 			/*go through the rss array of items and create html for each.
 			Clone end elements to the opposite ends to create endless slider.
 			*/
-			// console.dir(item);
 			var L = item.length,
 				firstItem = item[0],
 				lastItem = item[L - 1],
 				i,
 				j;
-			// elm.appendChild(li(lastItem));
 			for (i = 0; i < itemsToDisplay; i += 1) {
-				console.log('appendToBegin:' + i);
 				elm.appendChild(li(item[L - 1 - i]));
 			}
 			item.forEach(function (item, index) {
 				elm.appendChild(li(item));
 			});
 			for (j = 0; j < itemsToDisplay; j += 1) {
-				console.log('appendToEnd:' + j);
 				elm.appendChild(li(item[j]));
 			}
-			// elm.appendChild(li(firstItem));
 			return elm;
 		},
 		clearContainer = function () {
@@ -93,7 +88,6 @@ module.exports = function (params) {
 
 	return {
 		init: function () {
-			console.log('item_factory:init');
 			clearContainer();
 			containerElm.appendChild(createWrapperFragment());
 		},

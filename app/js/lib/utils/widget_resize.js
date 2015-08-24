@@ -18,23 +18,15 @@ module.exports = function (params) {
 			elements.prevbtn.style.top = (0.5 * itemsToDisplay * refH) + 'px';
 		},
 		setViewportHeight = function () {
-			console.log('widget_resize:setViewportHeight');
 			setHeight(viewport, (refH * itemsToDisplay));
 		};
 
 	return {
 		init: function () {
-			console.log('widget_resize:init');
-			console.log(params);
-			// console.dir(elements);
 			viewport = elements.viewport;
-			// setRefHeight();
 		},
 		update: function (h) {
 			refH = h;
-			console.log('widget_resize:update:' + refH);
-			console.dir(elements);
-			// elements.viewport.style.height = '240px';
 			setViewportHeight();
 			positionButtons();
 		}

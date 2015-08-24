@@ -42,7 +42,7 @@ gulp.task('css:sass', function () {
 			outputStyle: 'expanded'
 		}))
 		.pipe(autoprefixer({
-		browsers: ['last 2 versions'],
+		browsers: ['last 20 versions'],
 		cascade: true,
 		remove: true
 	}))

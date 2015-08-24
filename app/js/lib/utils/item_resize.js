@@ -14,19 +14,14 @@ module.exports = function (params) {
 
 	return {
 		init: function () {
-			// console.log('item_resize:init');
-			// console.dir(elements);
+			/*init*/
 		},
 		update: function (h) {
-			console.log('item_resize:update:' + h);
 			refH = h;
-			console.dir(elements);
 			try {
 				elements.item.forEach(function (elm) {
-					// console.dir(elm);
 					setHeight(elm.wrap);
 				});
-
 			} catch (e) {
 				console.log('item_resize:update:28:' + e);
 			}

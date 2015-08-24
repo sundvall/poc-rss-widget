@@ -1,11 +1,11 @@
 /*jslint browser: true, devel:true */
 /*global module, require*/
 /*
- *Input: params{items:N,url:'...url.to.rss..}
  */
 var actions = require('./actions'),
 	constants = require('./constants'),
 	dispatcher = require('./dispatcher'),
+	events = require('./utils/events'),
 	height_scale = require('./utils/height_scale'),
 	widget_resize = require('./utils/widget_resize'),
 	item_resize = require('./utils/item_resize'),
@@ -38,7 +38,7 @@ module.exports = function (params) {
 			heightScale = height_scale({
 				ref_elm: elements.widget,
 				id: id,
-				format: '16_9'
+				format: (elements.widget.getAttribute('format') || '16_9')
 			});
 			heightScale.init();
 			heightScale.getHeight();
@@ -49,14 +49,15 @@ module.exports = function (params) {
 			widgetResize.init();
 			widgetResize.update(heightScale.getHeight());
 		},
-		replaceList = function () {
-			var itemlist,
-				steps;
-			try {
-				itemlist = (data.state.query.results.rss.channel.item || data.state.query.results.feed.entry);
-			} catch (e) {
-				console.log('slider_viewcontrol:124: rss format is not supported.' + e);
-			}
+		controlListHeight = function () {
+			widgetResize.update(heightScale.getHeight());
+			itemResize = item_resize({
+				elements: itemFactory.getElements()
+			});
+			itemResize.init();
+			itemResize.update(heightScale.getHeight());
+		},
+		createItemHtml = function (itemlist) {
 			itemFactory = item_factory({
 				container: elements.items,
 				id: id,
@@ -74,22 +75,42 @@ module.exports = function (params) {
 				}]
 			});
 			itemFactory.init();
+			return itemFactory.getElements();
 		},
-		controlListHeight = function () {
-			widgetResize.update(heightScale.getHeight());
-			itemResize = item_resize({
-				elements: itemFactory.getElements()
+		createVerticalSlider = function (itemlist, steps) {
+			steps = itemlist.length / itemsToDisplay;
+			slideElement = slide_element({
+				element: elements.items,
+				stepsize: (itemsToDisplay * heightScale.getHeight()),
+				steps: steps
 			});
-			itemResize.init();
-			itemResize.update(heightScale.getHeight());	
+			slideElement.init();
 		},
 		addListeners = function () {
+			//TODO modularize this to separate action
+			/*A listener is added to the parent of the dynamic rss-flow. When the rss-flow is updated the listener remains, and reads the 'rel' attribute of the clicked element.*/
+			var event_tool = events(),
+				clickItemsHandler = function (e) {
+					e.stopPropagation();
+					var sendFkn = function (p) {
+						var url = p.elm.getAttribute('rel');
+						console.log('click:' + p.elm.getAttribute('rel'));
+						if (url) {
+							try {
+								window.open(url, '_blank');
+							} catch (e) {
+								console.log('slider_viewcontrol:100:open external link:' + e);
+							}
+						}
+					};
+					event_tool.handle(e, '.rss_item', sendFkn, true);
+				};
+			event_tool.add(elements.items, 'click', clickItemsHandler);
+
 			elements.nextbtn.addEventListener('click', function () {
-				console.log(id);
 				slideElement.next();
 			});
 			elements.prevbtn.addEventListener('click', function () {
-				console.log(id);
 				slideElement.prev();
 			});
 		};
@@ -112,42 +133,11 @@ module.exports = function (params) {
 			} catch (e) {
 				console.log('slider_viewcontrol:124: rss format is not supported.' + e);
 			}
-			itemFactory = item_factory({
-				container: elements.items,
-				id: id,
-				items_to_display: itemsToDisplay,
-				item: itemlist || [{
-					category: 'category',
-					description: 'description',
-					guid: {
-						content: 'permalink',
-						isPermalink: 'true'
-					},
-					link: 'www...',
-					pubDate: 'date',
-					title: 'title'
-				}]
-			});
-			itemFactory.init();
+			createItemHtml(itemlist);
 			/*Control the size of the list*/
 			controlListHeight();
-			/*
-			widgetResize.update(heightScale.getHeight());
-			itemResize = item_resize({
-				elements: itemFactory.getElements()
-			});
-			itemResize.init();
-			itemResize.update(heightScale.getHeight());
-			*/
-			
 			/*Attach slider functionality*/
-			steps = itemlist.length / itemsToDisplay;
-			slideElement = slide_element({
-				element: elements.items,
-				stepsize: (itemsToDisplay * heightScale.getHeight()),
-				steps: steps
-			});
-			slideElement.init();
+			createVerticalSlider(itemlist, steps);
 		}
 	};
 };

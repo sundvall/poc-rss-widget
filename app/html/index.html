@@ -12,13 +12,16 @@
     <body>
 		<div class='test_column' style='max-width:320px;width:100%'>
 			<h1>demo</h1>
-			<div class='rss_widget' items='2' rel='http://www.aftonbladet.se/rss.xml'></div>
+			<div class='rss_widget rss_ab' items='2' rel='http://www.aftonbladet.se/rss.xml' format='16_9'></div>
+			<div class='rss_widget rss_ab' items='5' rel='http://www.aftonbladet.se/rss.xml' format='5_1'></div>
 			<!-- <div class='rss_widget' items='2' rel='http://www.svt.se/nyheter/rss.xml'></div> -->
-			<!-- <div class='rss_widget' items='3' rel='http://feeds.abcnews.com/abcnews/sportsheadlines'></div> -->
+			
 			<!-- <div class='rss_widget' items='3' rel='http://www.svd.se/?service=rss'></div> -->
 			<!-- <div class='rss_widget' items='3' rel='http://api.sr.se/api/rss/program/4540'></div> -->
+			<div class='test_column' style='max-width:320px;width:50%;float:right'>
+				<div class='rss_widget rss_abc' items='3' rel='http://feeds.abcnews.com/abcnews/sportsheadlines' format='4_3'></div>
+			<div>
 		</div>
-		<div>
 			lorem ipsum
 		</div>
 		<script src="./js/bundle.js"></script>

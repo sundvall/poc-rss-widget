@@ -13,9 +13,9 @@ module.exports = function (params) {
 			'nextbtn': '',
 			'prevbtn': ''
 		},
-		id = params.id,
 		createWrapperFragment = function () {
 			/* 
+			Output:
 			<div class="rss_wrap">
 				<div class="fkn_rss_viewport rss_viewport">
 					<ol class="fkn_rss_items rss_wrap">

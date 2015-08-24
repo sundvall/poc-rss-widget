@@ -1,12 +1,13 @@
 /*jslint browser: true, devel:true */
 /*global module, require*/
 /*
- 	
+	The height is calculated from a selected aspect format.
  */
 module.exports = function (params) {
 	"use strict";
 
 	var refElm = params.ref_elm,
+		format = (params.format || '4_3'),
 		aspects = {
 			'4_3': {
 				h: 3,
@@ -19,15 +20,20 @@ module.exports = function (params) {
 			'16_9': {
 				h: 9,
 				w: 16
+			},
+			'3_1': {
+				h: 1,
+				w: 3
+			},
+			'5_1': {
+				h: 1,
+				w: 5
 			}
 		},
-		format = (params.format || '4_3'),
-		// itemsToDisplay = params.items_to_display,
 		MATHROUND = Math.round,
-		ref_h = (aspects[format].h || 3),
-		ref_w = (aspects[format].w || 4),
+		ref_h = (aspects[format] ? aspects[format].h : 3),
+		ref_w = (aspects[format] ? aspects[format].w : 4),
 		refHeight,
-		// id = params.id,
 		boxPosition = function (elm) {
 			var b = elm.getBoundingClientRect();
 			return {
@@ -50,8 +56,6 @@ module.exports = function (params) {
 
 	return {
 		init: function () {
-			// console.log('height_control:init');
-			// console.dir(params);
 			setRefHeight();
 		},
 		getHeight: function () {

@@ -40,11 +40,6 @@ var actions = require('./lib/actions'),
 			});
 		};
 	countElementsAndInitRss();
-
-	var update = function () {
-		console.log('main:tiemout');
-		actions.update('all');
-	};
-	setTimeout(update, 1000);
-	// setTimeout(update, 5000);
+	/*the rss-widget may be updated together or individually.*/
+	actions.update('all');
 }());

@@ -93,10 +93,6 @@ module.exports = (function () {
 				startDispatching(TPayload);
 				try {
 					Object.keys(callbacks).forEach(function (disp_token) {
-						// console.log('dispatcher: token:' + disp_token);
-						// console.dir(callbacks[disp_token]);
-						// callbacks[disp_token]();
-						
 						if (!isPending[callbacks[disp_token]]) {
 							invokeCallback(disp_token);
 						}

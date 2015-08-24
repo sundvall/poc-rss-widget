@@ -135,10 +135,6 @@ module.exports = (function () {
 				startDispatching(TPayload);
 				try {
 					Object.keys(callbacks).forEach(function (disp_token) {
-						// console.log('dispatcher: token:' + disp_token);
-						// console.dir(callbacks[disp_token]);
-						// callbacks[disp_token]();
-						
 						if (!isPending[callbacks[disp_token]]) {
 							invokeCallback(disp_token);
 						}
@@ -187,25 +183,21 @@ module.exports = (function () {
 },{}],4:[function(require,module,exports){
 /*jslint browser: true, devel:true */
 /*global module, require*/
-/*
- *Input: params{items:N,url:'...url.to.rss..}
- */
+
 var actions = require('./actions'),
 	constants = require('./constants'),
 	dispatcher = require('./dispatcher');
 
 module.exports = function (params) {
 	"use strict";
-	var	urlToRss = params.url,
-		dispatchToken,
+	var	id = params.id,
+		urlToRss = params.url,
 		viewcontrol = params.viewcontrol,
-		id = params.id,
+		dispatchToken,
 		state = {
 			'type': 'json formatted rss flow'
 		},
 		emitChange = function () {
-			console.log('rsslist_store:emitChange:state:');
-			// console.dir(state);
 			viewcontrol[id].update({
 				'from': 'rsslist_store',
 				'id': id,
@@ -223,9 +215,7 @@ module.exports = function (params) {
 			return yahooApi + encodeURIComponent('select * from ' + xmlOrJson + ' where url=\"' + urlToRss + '\"') + '&format=json';
 		},
 		responseHandler = function () {
-			// console.log('emit change');
 			state = JSON.parse(this.response);
-			// console.log(JSON.parse(this.response));
 			emitChange();
 		},
 		getListAndRender = function () {
@@ -259,11 +249,11 @@ module.exports = function (params) {
 /*jslint browser: true, devel:true */
 /*global module, require*/
 /*
- *Input: params{items:N,url:'...url.to.rss..}
  */
 var actions = require('./actions'),
 	constants = require('./constants'),
 	dispatcher = require('./dispatcher'),
+	events = require('./utils/events'),
 	height_scale = require('./utils/height_scale'),
 	widget_resize = require('./utils/widget_resize'),
 	item_resize = require('./utils/item_resize'),
@@ -296,7 +286,7 @@ module.exports = function (params) {
 			heightScale = height_scale({
 				ref_elm: elements.widget,
 				id: id,
-				format: '16_9'
+				format: (elements.widget.getAttribute('format') || '16_9')
 			});
 			heightScale.init();
 			heightScale.getHeight();
@@ -307,14 +297,15 @@ module.exports = function (params) {
 			widgetResize.init();
 			widgetResize.update(heightScale.getHeight());
 		},
-		replaceList = function () {
-			var itemlist,
-				steps;
-			try {
-				itemlist = (data.state.query.results.rss.channel.item || data.state.query.results.feed.entry);
-			} catch (e) {
-				console.log('slider_viewcontrol:124: rss format is not supported.' + e);
-			}
+		controlListHeight = function () {
+			widgetResize.update(heightScale.getHeight());
+			itemResize = item_resize({
+				elements: itemFactory.getElements()
+			});
+			itemResize.init();
+			itemResize.update(heightScale.getHeight());
+		},
+		createItemHtml = function (itemlist) {
 			itemFactory = item_factory({
 				container: elements.items,
 				id: id,
@@ -332,22 +323,42 @@ module.exports = function (params) {
 				}]
 			});
 			itemFactory.init();
+			return itemFactory.getElements();
 		},
-		controlListHeight = function () {
-			widgetResize.update(heightScale.getHeight());
-			itemResize = item_resize({
-				elements: itemFactory.getElements()
+		createVerticalSlider = function (itemlist, steps) {
+			steps = itemlist.length / itemsToDisplay;
+			slideElement = slide_element({
+				element: elements.items,
+				stepsize: (itemsToDisplay * heightScale.getHeight()),
+				steps: steps
 			});
-			itemResize.init();
-			itemResize.update(heightScale.getHeight());	
+			slideElement.init();
 		},
 		addListeners = function () {
+			//TODO modularize this to separate action
+			/*A listener is added to the parent of the dynamic rss-flow. When the rss-flow is updated the listener remains, and reads the 'rel' attribute of the clicked element.*/
+			var event_tool = events(),
+				clickItemsHandler = function (e) {
+					e.stopPropagation();
+					var sendFkn = function (p) {
+						var url = p.elm.getAttribute('rel');
+						console.log('click:' + p.elm.getAttribute('rel'));
+						if (url) {
+							try {
+								window.open(url, '_blank');
+							} catch (e) {
+								console.log('slider_viewcontrol:100:open external link:' + e);
+							}
+						}
+					};
+					event_tool.handle(e, '.rss_item', sendFkn, true);
+				};
+			event_tool.add(elements.items, 'click', clickItemsHandler);
+
 			elements.nextbtn.addEventListener('click', function () {
-				console.log(id);
 				slideElement.next();
 			});
 			elements.prevbtn.addEventListener('click', function () {
-				console.log(id);
 				slideElement.prev();
 			});
 		};
@@ -370,56 +381,117 @@ module.exports = function (params) {
 			} catch (e) {
 				console.log('slider_viewcontrol:124: rss format is not supported.' + e);
 			}
-			itemFactory = item_factory({
-				container: elements.items,
-				id: id,
-				items_to_display: itemsToDisplay,
-				item: itemlist || [{
-					category: 'category',
-					description: 'description',
-					guid: {
-						content: 'permalink',
-						isPermalink: 'true'
-					},
-					link: 'www...',
-					pubDate: 'date',
-					title: 'title'
-				}]
-			});
-			itemFactory.init();
+			createItemHtml(itemlist);
 			/*Control the size of the list*/
 			controlListHeight();
-			/*
-			widgetResize.update(heightScale.getHeight());
-			itemResize = item_resize({
-				elements: itemFactory.getElements()
-			});
-			itemResize.init();
-			itemResize.update(heightScale.getHeight());
-			*/
-			
 			/*Attach slider functionality*/
-			steps = itemlist.length / itemsToDisplay;
-			slideElement = slide_element({
-				element: elements.items,
-				stepsize: (itemsToDisplay * heightScale.getHeight()),
-				steps: steps
-			});
-			slideElement.init();
+			createVerticalSlider(itemlist, steps);
 		}
 	};
 };
 
-},{"./actions":1,"./constants":2,"./dispatcher":3,"./utils/height_scale":6,"./utils/item_factory":7,"./utils/item_resize":8,"./utils/slide_element":9,"./utils/widget_resize":10,"./utils/widgetwrap_factory":11}],6:[function(require,module,exports){
+},{"./actions":1,"./constants":2,"./dispatcher":3,"./utils/events":6,"./utils/height_scale":7,"./utils/item_factory":8,"./utils/item_resize":9,"./utils/slide_element":10,"./utils/widget_resize":11,"./utils/widgetwrap_factory":12}],6:[function(require,module,exports){
+/*jslint browser: true, devel:true */
+/*global module, CustomEvent*/
+module.exports = function (params) {
+	"use strict";
+	
+	var containsWord = function (string, word) {
+		return new RegExp('\\b' + word + '\\b').test(string);
+	},
+		checkParentForFilterHit = function (element, filter, addFilter) {
+			var node = element,
+				additionalFilterHit = false,
+				parentNode = node.parentNode,
+				className = element.className,
+				wrapFilterHit = false,
+				wrapFilter = 'KF04RZ211adcont',
+				seq = 0,
+				parentTargetHit = false;
+			while (parentNode !== null && !(seq > 15 || wrapFilterHit || parentTargetHit)) {
+				node = parentNode;
+				className = parentNode.className;
+				parentTargetHit = containsWord(className, filter);
+				wrapFilterHit = containsWord(className, wrapFilter);
+				if (!additionalFilterHit) {
+					additionalFilterHit = containsWord(className, addFilter);
+				}
+				seq += 1;
+				parentNode = node.parentNode;
+			}
+			return {
+				'filterHit': parentTargetHit,
+				'targetElem': node,
+				'className': className
+			};
+		},
+		handle = function (e, classSelectorFilter, sendFkn, checkParent) {
+			var handle = (function () {
+				e = e || window.event;
+				var targetElem = e.target || e.srcElement,
+					filterHit = false,
+					className = targetElem.className,
+					data = e.detail,
+					checkParentObj,
+					filterClassName = classSelectorFilter.slice(1);
+				filterHit = containsWord(className, filterClassName);
+				if (!filterHit && checkParent) {
+					checkParentObj = checkParentForFilterHit(targetElem, filterClassName);
+					filterHit = checkParentObj.filterHit;
+					className = checkParentObj.className;
+					targetElem = checkParentObj.targetElem;
+				}
+				if (filterHit && sendFkn) {
+					sendFkn({
+						'elm': targetElem,
+						'data': data,
+						'e': e
+					});
+				}
+				return {
+					getEventObj: function () {
+						return {
+							'className': className,
+							'data': data,
+							'filterHit': filterHit,
+							'filter': filterClassName
+						};
+					}
+				};
+			}());
+			return handle;
+		},
+		startListening = function (parentElement, eventType, eventHandler) {
+			if (parentElement.addEventListener) {
+				parentElement.addEventListener(eventType, eventHandler, false);
+			} else if (parentElement.attachEvent) {
+				eventType = "on" + eventType;
+				parentElement.attachEvent(eventType, eventHandler);
+			} else {
+				parentElement["on" + eventType] = eventHandler;
+			}
+		};
+
+	return {
+		add: function (parentElm, eventType, eventHandler) {
+			startListening(parentElm, eventType, eventHandler);
+		},
+		handle: function (event, classSelectorFilter, sendFkn, checkParentFilterHit) {
+			return handle(event, classSelectorFilter, sendFkn, checkParentFilterHit);
+		}
+	};
+};
+},{}],7:[function(require,module,exports){
 /*jslint browser: true, devel:true */
 /*global module, require*/
 /*
- 	
+	The height is calculated from a selected aspect format.
  */
 module.exports = function (params) {
 	"use strict";
 
 	var refElm = params.ref_elm,
+		format = (params.format || '4_3'),
 		aspects = {
 			'4_3': {
 				h: 3,
@@ -432,15 +504,20 @@ module.exports = function (params) {
 			'16_9': {
 				h: 9,
 				w: 16
+			},
+			'3_1': {
+				h: 1,
+				w: 3
+			},
+			'5_1': {
+				h: 1,
+				w: 5
 			}
 		},
-		format = (params.format || '4_3'),
-		// itemsToDisplay = params.items_to_display,
 		MATHROUND = Math.round,
-		ref_h = (aspects[format].h || 3),
-		ref_w = (aspects[format].w || 4),
+		ref_h = (aspects[format] ? aspects[format].h : 3),
+		ref_w = (aspects[format] ? aspects[format].w : 4),
 		refHeight,
-		// id = params.id,
 		boxPosition = function (elm) {
 			var b = elm.getBoundingClientRect();
 			return {
@@ -463,8 +540,6 @@ module.exports = function (params) {
 
 	return {
 		init: function () {
-			// console.log('height_control:init');
-			// console.dir(params);
 			setRefHeight();
 		},
 		getHeight: function () {
@@ -474,7 +549,7 @@ module.exports = function (params) {
 	};
 };
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /*jslint browser: true, devel:true */
 /*global module, require*/
 /*
@@ -534,25 +609,20 @@ module.exports = function (params) {
 			/*go through the rss array of items and create html for each.
 			Clone end elements to the opposite ends to create endless slider.
 			*/
-			// console.dir(item);
 			var L = item.length,
 				firstItem = item[0],
 				lastItem = item[L - 1],
 				i,
 				j;
-			// elm.appendChild(li(lastItem));
 			for (i = 0; i < itemsToDisplay; i += 1) {
-				console.log('appendToBegin:' + i);
 				elm.appendChild(li(item[L - 1 - i]));
 			}
 			item.forEach(function (item, index) {
 				elm.appendChild(li(item));
 			});
 			for (j = 0; j < itemsToDisplay; j += 1) {
-				console.log('appendToEnd:' + j);
 				elm.appendChild(li(item[j]));
 			}
-			// elm.appendChild(li(firstItem));
 			return elm;
 		},
 		clearContainer = function () {
@@ -570,7 +640,6 @@ module.exports = function (params) {
 
 	return {
 		init: function () {
-			console.log('item_factory:init');
 			clearContainer();
 			containerElm.appendChild(createWrapperFragment());
 		},
@@ -581,7 +650,7 @@ module.exports = function (params) {
 	};
 };
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*jslint browser: true, devel:true */
 /*global module, require*/
 /*
@@ -598,19 +667,14 @@ module.exports = function (params) {
 
 	return {
 		init: function () {
-			// console.log('item_resize:init');
-			// console.dir(elements);
+			/*init*/
 		},
 		update: function (h) {
-			console.log('item_resize:update:' + h);
 			refH = h;
-			console.dir(elements);
 			try {
 				elements.item.forEach(function (elm) {
-					// console.dir(elm);
 					setHeight(elm.wrap);
 				});
-
 			} catch (e) {
 				console.log('item_resize:update:28:' + e);
 			}
@@ -620,7 +684,7 @@ module.exports = function (params) {
 	};
 };
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*jslint browser: true, devel:true */
 /*global module, require*/
 /*
@@ -632,24 +696,42 @@ module.exports = function (params) {
 	var element = params.element,
 		steps = params.steps,
 		stepsize = params.stepsize,
-		scrollMax = (steps - 1) * stepsize,
+		scrollMax = (steps - 0) * stepsize,
 		scrollMin = stepsize,
 		currentScroll = 0,
 		scrollSlider = function () {
-			console.log('scrollSlider:' + currentScroll + ' max:' + scrollMax + ' scrollMin:' + scrollMin);
 			if (Math.abs(currentScroll) > scrollMax) {
-				setTimeout(scrollToTop(), 500);
+				element.style.top = currentScroll + 'px';
+				setTimeout(function () {
+					element.style.transitionDuration = '0ms';
+					scrollToTop();
+					setTimeout(function () {
+						element.style.transitionDuration = '250ms';
+					}, 251);
+				}, 251);
 			} else if (Math.abs(currentScroll) < scrollMin) {
-				setTimeout(scrollToBottom(), 500);
+				element.style.top = currentScroll + 'px';
+				setTimeout(function () {
+					element.style.transitionDuration = '0ms';
+					scrollToEnd();
+					setTimeout(function () {
+						element.style.transitionDuration = '250ms';
+					}, 251);
+				}, 251);
+			} else {
+				element.style.top = currentScroll + 'px';
 			}
-			element.style.top = currentScroll + 'px';
 		},
-		scrollToBottom = function () {
-			currentScroll = -scrollMax; //*itemsToDisplay
+		scrollToEnd = function () {
+			currentScroll = -scrollMax;
+			scrollSlider();
+		},
+		scrollToSecond = function () {
+			currentScroll = -2 * stepsize;
 			scrollSlider();
 		},
 		scrollToTop = function () {
-			currentScroll = -stepsize; //*itemsToDisplay
+			currentScroll = -stepsize;
 			scrollSlider();
 		},
 		skipToNext = function () {
@@ -663,23 +745,19 @@ module.exports = function (params) {
 
 	return {
 		init: function () {
-			console.log('slide_element:init');
-			console.log(params);
 			scrollToTop();
 		},
 		next: function () {
-			console.log('slide_element:next');
 			skipToNext();
 		},
 		prev: function () {
-			console.log('slide_element:prev');
 			skipToPrevious();
 		}
 
 	};
 };
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /*jslint browser: true, devel:true */
 /*global module, require*/
 /*
@@ -700,23 +778,15 @@ module.exports = function (params) {
 			elements.prevbtn.style.top = (0.5 * itemsToDisplay * refH) + 'px';
 		},
 		setViewportHeight = function () {
-			console.log('widget_resize:setViewportHeight');
 			setHeight(viewport, (refH * itemsToDisplay));
 		};
 
 	return {
 		init: function () {
-			console.log('widget_resize:init');
-			console.log(params);
-			// console.dir(elements);
 			viewport = elements.viewport;
-			// setRefHeight();
 		},
 		update: function (h) {
 			refH = h;
-			console.log('widget_resize:update:' + refH);
-			console.dir(elements);
-			// elements.viewport.style.height = '240px';
 			setViewportHeight();
 			positionButtons();
 		}
@@ -724,7 +794,7 @@ module.exports = function (params) {
 	};
 };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /*jslint browser: true, devel:true */
 /*global module, require*/
 /*
@@ -740,9 +810,9 @@ module.exports = function (params) {
 			'nextbtn': '',
 			'prevbtn': ''
 		},
-		id = params.id,
 		createWrapperFragment = function () {
 			/* 
+			Output:
 			<div class="rss_wrap">
 				<div class="fkn_rss_viewport rss_viewport">
 					<ol class="fkn_rss_items rss_wrap">
@@ -784,7 +854,7 @@ module.exports = function (params) {
 	};
 };
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /*jslint browser: true, devel:true */
 /*global require*/
 var actions = require('./lib/actions'),
@@ -827,13 +897,8 @@ var actions = require('./lib/actions'),
 			});
 		};
 	countElementsAndInitRss();
-
-	var update = function () {
-		console.log('main:tiemout');
-		actions.update('all');
-	};
-	setTimeout(update, 1000);
-	// setTimeout(update, 5000);
+	/*the rss-widget may be updated together or individually.*/
+	actions.update('all');
 }());
 
-},{"./lib/actions":1,"./lib/constants":2,"./lib/dispatcher":3,"./lib/rsslist_store":4,"./lib/slider_viewcontrol":5}]},{},[12]);
+},{"./lib/actions":1,"./lib/constants":2,"./lib/dispatcher":3,"./lib/rsslist_store":4,"./lib/slider_viewcontrol":5}]},{},[13]);

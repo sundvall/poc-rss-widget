@@ -20,6 +20,7 @@ $devborder:'1px dashed black';
 	position:relative;
 	left:0;
 	top:0;
+	transition:top 250ms ease-out;
 }
 .rss_item {
 	border:1px dashed blue;
