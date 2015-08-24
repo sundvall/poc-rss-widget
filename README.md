@@ -9,6 +9,8 @@ Use the setup from the dist-folder to test.
 <...element class='rss_widget' items='2' rel='http://www.myspecificrssflow2WithSameFormat.se/rss.xml'></...element>  
 
 ##build for dev  
+npm install
+
 gulp
 
 ##build for prod
