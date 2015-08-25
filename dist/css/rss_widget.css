@@ -23,6 +23,7 @@
   padding: 0;
   /*	border: 0 none;*/
   outline: 0;
+  line-height: 14px;
   font-size: 12px;
   font-family: arial, sans-serif;
   vertical-align: baseline !important;
@@ -39,22 +40,16 @@
 
 /*reset end*/
 .rss_widget {
-  border: 1px dashed red;
   width: 100%;
   position: relative;
-}
-
-.rss_wrap {
-  border: 2px dashed orange;
+  cursor: pointer;
 }
 
 .rss_viewport {
-  border: 1px dashed yellow;
   overflow: hidden;
 }
 
 .rss_items {
-  border: 1px dashed green;
   position: relative;
   left: 0;
   top: 0;
@@ -64,7 +59,6 @@
 }
 
 .rss_item {
-  border: 1px dashed blue;
   overflow: hidden;
 }
 
@@ -94,82 +88,80 @@
           transform: rotate(90deg);
 }
 
-/*.rss_wrap {
-	width:100%;
-	position:relative;
-	left:0;
-	top:0;
-	border:1px dashed black;
-	.rss_viewport {
-		width:90%;
-		overflow:hidden;
-		margin:0 auto 0 auto;
-		position:relative;
-		left:0;
-		top:0;
-	}
-	ol {
-		display:block;
-		width:100%;
-		margin:0;
-		padding:0;
-		position:relative;
-		left:0;
-		top:0;
-
-	}
-	li {
-		display:block;
-		width:100%;
-		margin:0;
-		padding:0;
-
-	}
-	button {
-		position:absolute;
-	}
-	.rss_next {
-		left:0;
-		top:40px;
-	}
-	.rss_prev {
-		right:0;
-		top:40px;
-	}
+.rss_ab_16_9 {
+  background: #F5F5F5;
+  padding: 3px;
+  -webkit-box-shadow: 0 0 5px #ccc;
+          box-shadow: 0 0 5px #ccc;
 }
 
-.rss_item {
-	background:grey;
+.rss_ab_16_9 .rss_item {
+  background: #F5F5F5;
+  color: #0F0707;
+}
 
-	border-radius:10px;
-	display:block;
-	position:relative;
-	left:0;
-	top:0;
-	h2 {
-		font-size:1em;
-		line-height:1.2em;
-	}
-	img {
-		border:2px dashed grey;
-		width:100%;
-	}
-	ol {
-		display:block;
-		overflow:hidden;
-		list-style:none;
-		position:absolute;
-		width:100%;
-	}
-	li {
-		list-style:none;
-		width:100%;
-	}
-	p {
-		display:block;
-		overflow:hidden;
-		font-family:arial;
-		color:yellow;
-		line-height:1em;
-	}
-}*/
+.rss_ab_16_9 .rss_category {
+  display: block;
+  width: 100%;
+  background: #C9C9C9;
+  line-height: 1em;
+  height: 1em;
+}
+
+.rss_ab_16_9 .rss_description {
+  display: block;
+  margin: auto;
+  width: 100%;
+  line-height: 0;
+  overflow: hidden;
+}
+
+.rss_ab_16_9 img {
+  max-width: 75%;
+  margin: auto;
+  display: block;
+}
+
+.rss_ab_5_1 {
+  background: #F5F5F5;
+  padding: 3px;
+  -webkit-box-shadow: 0 0 5px #ccc;
+          box-shadow: 0 0 5px #ccc;
+}
+
+.rss_ab_5_1 .rss_item {
+  background: #F5F5F5;
+  color: #0F0707;
+}
+
+.rss_ab_5_1 .rss_category {
+  display: block;
+  width: 60%;
+  background: #C9C9C9;
+  line-height: 1em;
+  height: 1em;
+  float: right;
+}
+
+.rss_ab_5_1 .rss_pubdate {
+  float: right;
+  width: 60%;
+}
+
+.rss_ab_5_1 .rss_title {
+  float: right;
+  width: 60%;
+}
+
+.rss_ab_5_1 .rss_description {
+  display: block;
+  width: 40%;
+  line-height: 0;
+  overflow: hidden;
+}
+
+.rss_ab_5_1 img {
+  max-width: 75%;
+  margin: auto;
+  display: block;
+}

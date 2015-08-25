@@ -6,7 +6,8 @@ Use the setup from the dist-folder to test.
 
  The rss-slider is used on a website with configuration done in the html-tag:  
 ```html
-<div class='rss_widget rss_ab' items='5' rel='http://www.aftonbladet.se/rss.xml' format='5_1'></div>
+<div class='rss_widget rss_ab_5_1' items='5' rel='http://www.aftonbladet.se/rss.xml' format='5_1'></div>
+<div class='rss_widget rss_ab_16_9' items='5' rel='http://www.aftonbladet.se/rss.xml' format='16_9'></div>
 
 ```
 configuration:  
@@ -32,4 +33,5 @@ gulp
 gulp build
 
 ### <i>todo
-<i>apply nice style from class 'rss_ab'
+<i>apply iconimages for buttons
+<i>update specific stylesheets (_rss_ab_16_9, _rss_ab_5_1, _rss_other_width_height) to meet design demands	
